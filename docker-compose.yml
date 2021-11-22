@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  node:
+    build:
+      context: ./application
+    user: node
+    container_name: node
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./application:/var/www/app
+    ports:
+      - '3000:3000'
+    command: 'npm start'
+  nginx:
+    build:
+      context: ./docker/nginx
+    container_name: nginx
+    working_dir: /var/www/html
+    volumes:
+      - ./application:/var/www/html
+      - ./docker/nginx/conf.d/node.conf:/etc/nginx/conf.d/node.template
+      - ./docker/nginx/lua:/etc/nginx/lua
+      - ./volume/cache:/var/cache
+      - ./volume/logs:/var/log
+    ports:
+      - '8080:80'
+    command: 'bash -c "cat /etc/nginx/conf.d/node.template > /etc/nginx/conf.d/default.conf && nginx -g ''daemon off;''"'
